@@ -18,7 +18,7 @@ The router's core job is routing. Read the request, decide which manuals are nee
 | "Export as glTF / FBX / OBJ / for web / for Unity" | `blender-export` | Final step |
 | "Set up a scene / production-quality result" | `blender-pro-workflow` | First — guides everything |
 | "I'm new / not sure where to start" | `blender-pro-workflow` | First |
-| "This is sub-par / still wrong / same issue again" | `quality-refinement-autoloop`, then `blender-skill-harmonizer` | First — learn, sanitize, patch, then retry |
+| "This is sub-par / still wrong / same issue again" | Relevant repair manual; `quality-refinement-autoloop` for recurring or unexplained failures | Diagnose and repair the artifact; skill maintenance requires an explicit request |
 | "Match these templates / wireframes / textures exactly" | `reference-to-3d` first, then `blender-skill-harmonizer` when several skills conflict | First — establish source-of-truth gates |
 
 ### Multi-intent example
@@ -61,8 +61,8 @@ Do not declare a 1:1 reconstruction complete without `reference-analysis-validat
 |-----------|---------|
 | Request contains "human" / "character" / "face" / "person" | Pure primitives produce a silhouette, **not** a face. Use the asset-generation MCP tools (`download_polyhaven_asset`, `download_sketchfab_model`, `generate_hyper3d_model_via_text`) for a base mesh, then chain materials + lighting + render. Load `character-artist` for proportions. Do NOT claim a sphere-with-features looks human. |
 | Elongated subject (sword, spike, pole) | Orient the broad axis toward the camera — see `blender-modeling` "Critical: axis orientation for elongated objects". |
-| Scene already contains objects | Operate on them. Do **not** delete unless asked. Only a lone default cube is safe to delete. |
-| Ambiguous single request | Ask **one** question, then proceed with sensible defaults. |
+| Scene already contains objects | Operate on them. Do **not** delete unless asked. A default name alone does not establish ownership or permission to delete. |
+| Ambiguous single request | Inspect context first; ask only if the unresolved choice materially affects scope or the deliverable. Otherwise use a conservative default. |
 | Request spans modeling + lighting + materials + export | `blender-pro-workflow` first, so the sequencing is owned by one skill rather than improvised. |
 | Request is a knowledge question ("how does subsurf work?") | Answer directly. Do not drive Blender. |
 | Request is outside Blender's strengths (CAD precision, engineering CFD) | Redirect politely — see "What this handbook is NOT for" in the entry `SKILL.md`. |
@@ -71,7 +71,10 @@ Do not declare a 1:1 reconstruction complete without `reference-analysis-validat
 
 ## Precedence rules
 
-1. `blender-skill-harmonizer` owns activation precedence and conflict policy whenever two or more skills want to act on the same artifact.
-2. `quality-refinement-autoloop` runs **before** further product work when output was rejected or an issue is recurring — learn and sanitize first, then retry.
-3. A reference-locked request outranks generic production workflow: fidelity gates are not optional extras.
-4. When no rule applies, use `${COMMANDCODE_SKILL_DIR}/references/assembly-order.md` as the default sequence.
+This section is the single authority for workflow selection. Other manuals supply operations and gates within the selected workflow.
+
+1. User scope and source constraints take priority. Single-phase edits go directly to the relevant domain manual; they do not require a full production pipeline.
+2. For reference-locked work, `reference-to-3d` is the entry. For mascot/logo/brand work, `mascot-logo-reconstruction` owns the full workflow. Generic multi-phase work uses `blender-pro-workflow` and `references/assembly-order.md` from the handbook root.
+3. Load `blender-skill-harmonizer` only when manuals actually disagree about ownership, source policy or order. It resolves that conflict and returns control to the chosen owner; it is not an extra mandatory first stage.
+4. On failure, preserve the baseline and diagnose before retrying. Use `quality-refinement-autoloop` for recurring or unclear failures. After 3 unsuccessful change/verify cycles for the same issue, stop changes and re-check evidence; resume only with a materially better hypothesis or a user-approved route. An earlier domain gate may stop work sooner.
+5. Ordinary recovery repairs the artifact. Editing this handbook, storing durable lessons or preparing releases requires an explicit request for that work. Art direction provides visual constraints and QA provides verdicts; neither becomes another orchestrator.

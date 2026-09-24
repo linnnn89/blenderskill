@@ -1,61 +1,106 @@
 #!/usr/bin/env python3
-from __future__ import annotations
-import json, re, argparse
+"""Read-only checks for the installed handbook; no plugin manifest required."""
+import argparse
+import ast
+import json
+import re
 from pathlib import Path
 
-def frontmatter(path: Path):
-    txt=path.read_text(encoding='utf-8')
-    if not txt.startswith('---'):
-        return {}, txt
-    parts=txt.split('---',2)
-    meta={}
-    for line in parts[1].splitlines():
-        if ':' in line:
-            k,v=line.split(':',1)
-            meta[k.strip()]=v.strip().strip('"')
-    return meta, parts[2]
+
+def audit(root):
+    root = Path(root).resolve()
+    errors, warnings = [], []
+    manuals = sorted(root.glob("[0-9][0-9]-*/*/MANUAL.md"))
+    groups = sorted(p for p in root.glob("[0-9][0-9]-*") if p.is_dir())
+    indexed = set()
+    if not (root / "SKILL.md").is_file():
+        errors.append("Missing SKILL.md")
+    if not manuals or not groups:
+        errors.append("No domain groups/manuals found")
+    for group in groups:
+        index = group / "INDEX.md"
+        if not index.is_file():
+            errors.append(f"Missing index: {group.name}/INDEX.md")
+            continue
+        for ref in re.findall(r"`([^`]+/MANUAL\.md)`", index.read_text(encoding="utf-8")):
+            target = (group / ref).resolve()
+            if target in indexed:
+                errors.append(f"Duplicate index target: {ref}")
+            indexed.add(target)
+            if not target.is_file():
+                errors.append(f"Missing index target: {group.name}/{ref}")
+    for manual in manuals:
+        if manual.resolve() not in indexed:
+            errors.append(f"Unindexed manual: {manual.relative_to(root)}")
+
+    # Check explicit resource paths, not output artifact names or prose mentions.
+    docs = [root / "SKILL.md", *root.glob("references/*.md")]
+    docs += [p for group in groups for p in group.rglob("*.md")]
+    names = {}
+    for doc in docs:
+        if not doc.is_file():
+            continue
+        body = doc.read_text(encoding="utf-8")
+        if doc.name == "MANUAL.md":
+            match = re.match(r"---\s*\n(.*?)\n---", body, re.S)
+            name = re.search(r"^name: (.+)$", match[1], re.M) if match else None
+            if not name:
+                errors.append(f"Missing manual name: {doc.relative_to(root)}")
+            elif name[1] in names:
+                errors.append(f"Duplicate manual name: {name[1]}")
+            else:
+                names[name[1]] = str(doc.relative_to(root))
+        refs = set(re.findall(r"`([^`\n]+)`", body))
+        refs.update(re.findall(r"\[[^]\n]*\]\(([^)\s]+)\)", body))
+        refs.update(re.findall(r"\$\{COMMANDCODE_SKILL_DIR\}/([\w./-]+)", body))
+        for ref in refs:
+            ref = ref.removeprefix("${COMMANDCODE_SKILL_DIR}/")
+            if ("/" not in ref or any(c in ref for c in " <>*{}")
+                    or ":" in ref or ref.startswith("/")
+                    or Path(ref).suffix not in {".md", ".py", ".webp", ".png"}):
+                continue
+            if Path(ref).suffix in {".png", ".webp"} and not ref.startswith("assets/"):
+                continue  # Render/report outputs are not installed resources.
+            if (doc.parent / ref).is_file() or (root / ref).is_file():
+                continue
+            message = f"Missing resource in {doc.relative_to(root)}: {ref}"
+            if ref.startswith("assets/"):
+                warnings.append(message)  # Historical evidence is not executable guidance.
+            else:
+                errors.append(message)
+    scripts = sorted(root.rglob("*.py"))
+    for script in scripts:
+        try:
+            ast.parse(script.read_text(encoding="utf-8-sig"), filename=str(script))
+        except SyntaxError as exc:
+            errors.append(f"Invalid Python: {script.relative_to(root)}: {exc}")
+    evals = sorted(root.rglob("evals.json"))
+    for dataset in evals:
+        try:
+            json.loads(dataset.read_text(encoding="utf-8-sig"))
+        except ValueError as exc:
+            errors.append(f"Invalid JSON: {dataset.relative_to(root)}: {exc}")
+    return {"schema": "blender_handbook_audit.v2", "groups": len(groups),
+            "manuals": len(manuals), "scripts": len(scripts), "eval_files": len(evals),
+            "errors": sorted(set(errors)), "warnings": sorted(set(warnings)),
+            "passed": not errors}
+
 
 def main():
-    ap=argparse.ArgumentParser()
-    ap.add_argument('--plugin-root', default='.')
-    ap.add_argument('--out', required=True)
-    args=ap.parse_args()
-    root=Path(args.plugin_root)
-    manifest=json.load(open(root/'manifest.json'))
-    report={'schema':'blender_skill_graph_audit.v1','version':manifest.get('version'),'skills':[],'roles':{},'warnings':[],'harmonization_needed':False}
-    names=set()
-    for e in manifest.get('skills',[]):
-        p=root/e['path']
-        exists=p.exists()
-        meta, body=frontmatter(p) if exists else ({},'')
-        item={'name':e['name'],'role':e.get('role'),'path':e['path'],'exists':exists,'frontmatter_name':meta.get('name'),'description_mentions':[]}
-        for other in manifest.get('skills',[]):
-            if other['name'] != e['name'] and other['name'] in body:
-                item['description_mentions'].append(other['name'])
-        report['skills'].append(item)
-        report['roles'].setdefault(e.get('role','unknown'),[]).append(e['name'])
-        names.add(e['name'])
-        if not exists:
-            report['warnings'].append(f"Missing path for {e['name']}: {e['path']}")
-        if exists and meta.get('name') and meta.get('name') != e['name']:
-            report['warnings'].append(f"Manifest/frontmatter name mismatch: {e['name']} vs {meta.get('name')}")
-    # Known overlap checks.
-    overlap_sets=[
-        ['reference-to-3d','wireframe-to-3d','mascot-logo-reconstruction','multiview-fit-loop','fit-repair-optimizer'],
-        ['blender-uv-texturing','atlas-uv-fitting'],
-        ['blender-skill','blender-pro-workflow','mascot-logo-reconstruction','blender-skill-harmonizer'],
-    ]
-    for group in overlap_sets:
-        present=[g for g in group if g in names]
-        if len(present)>1:
-            report['warnings'].append('Overlap group requires precedence/handoff rules: '+', '.join(present))
-            report['harmonization_needed']=True
-    if 'blender-skill-harmonizer' in names:
-        report['harmonization_layer_present']=True
-    else:
-        report['harmonization_layer_present']=False
-        report['harmonization_needed']=True
-    Path(args.out).parent.mkdir(parents=True, exist_ok=True)
-    Path(args.out).write_text(json.dumps(report,indent=2),encoding='utf-8')
-    print(json.dumps({'skills':len(report['skills']),'warnings':len(report['warnings']),'harmonization_needed':report['harmonization_needed'],'harmonization_layer_present':report['harmonization_layer_present']},indent=2))
-if __name__=='__main__': main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--skill-root", "--plugin-root", dest="root", default=".",
+                        help="Installed handbook root; --plugin-root is a legacy alias")
+    parser.add_argument("--out", help="Optional JSON report; stdout otherwise")
+    args = parser.parse_args()
+    report = audit(args.root)
+    text = json.dumps(report, indent=2, ensure_ascii=False)
+    if args.out:
+        path = Path(args.out)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+    print(text)
+    raise SystemExit(0 if report["passed"] else 2)
+
+
+if __name__ == "__main__":
+    main()

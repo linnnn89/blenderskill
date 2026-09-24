@@ -16,7 +16,7 @@ A render passing every numerical check (object count, vertex count, file size, n
    - **Materials have visible variation** — not perfectly flat plastic-looking surfaces. For production-quality scenes, add procedural texture nodes.
 3. **If the render is obviously wrong, do NOT report success.** Iterate: identify the specific problem, fix it, re-render, re-check.
 
-Magenta-flooded renders almost always mean a broken world from a previous run — reset the world first (`${COMMANDCODE_SKILL_DIR}/scripts/reset_world.py`).
+Magenta is a diagnostic signal, not permission to reset the world. Inspect world and material image nodes and their file paths, then repair the missing resource in scope. Only use `reset_world(scene=target_scene)` from `${COMMANDCODE_SKILL_DIR}/scripts/reset_world.py` when replacing that scene's world is the chosen repair; loading the helper alone does nothing.
 
 ---
 

@@ -26,8 +26,8 @@ If a user calls an animation ugly/bad, stop rebuilding immediately. First:
 - collect preview frames/contact sheet;
 - identify the failed dimension(s);
 - invoke `quality-refinement-autoloop` if the stack lacks a method;
-- add/refine generic skills only after sanitization;
-- only then rebuild the animation.
+- repair using existing methods and verify the failed motion;
+- edit generic skills only if the user explicitly requested skill maintenance. Sanitization alone is not authorization.
 
 ## Hard gates
 

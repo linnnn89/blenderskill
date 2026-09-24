@@ -68,11 +68,11 @@ Each repair item must include:
 
 ## Skill-gap rule
 
-If the same failure recurs twice, stop and invoke `quality-refinement-autoloop` before another rebuild. The autoloop must capture evidence, diagnose the missing method, sanitize the lesson into generic publishable guidance, patch the relevant skill(s), validate the skill stack, then return here with a new repair queue. Common routing:
+If the same failure recurs twice, stop and invoke `quality-refinement-autoloop` before another rebuild. The autoloop captures evidence, diagnoses the cause and returns an artifact repair method. Editing skills requires an explicit maintenance request; ordinary failure recovery does not authorize it. Common routing:
 
 - geometry mismatch → `contour-to-mesh`, `orthographic-registration`, or this skill;
 - UV/texture mismatch → `atlas-uv-fitting`;
-- lighting mismatch → add/look-calibrate guidance to `blender-lighting` or a look-calibration skill;
+- lighting mismatch → apply `blender-lighting` or `reference-look-calibration`;
 - validation mismatch → `multiview-fit-loop` / `reference-analysis-validator`.
 
 ## Output

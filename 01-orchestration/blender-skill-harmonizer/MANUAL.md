@@ -1,7 +1,7 @@
 ---
 name: blender-skill-harmonizer
-description: Harmonize multiple Blender skills into a coherent pipeline with clear activation precedence, handoff artifacts, dependency gates, and conflict-resolution rules. Use when a Blender task spans several skills, when reference-locked work conflicts with generic production workflow, after adding/updating skills, or when repeated failures indicate skill interference or missing inter/intra-play.
-when_to_use: Multi-skill Blender orchestration, skill graph audits, resolving overlaps between blender-skill/pro-workflow/reference-to-3d/wireframe/UV/fit/repair skills, defining source-of-truth precedence, artifact contracts, and sequential-vs-parallel execution plans.
+description: Resolve actual conflicts between active Blender manuals about source policy, object ownership or execution order, then return control to one workflow owner. Also provides a standalone handbook structure audit.
+when_to_use: Conflicting instructions or handoff policies, or an explicitly requested handbook structure audit; not every multi-phase Blender task.
 allowed-tools: Read Bash Glob Grep mcp__blender__execute_blender_code mcp__blender__get_scene_info mcp__blender__get_object_info
 ---
 
@@ -14,7 +14,7 @@ Use a **Merge → Consistency → Optimize → Store** cycle:
 1. **Merge:** list all triggered skills and their intended outputs.
 2. **Consistency:** detect conflicts in assumptions, coordinate systems, source hierarchy, object naming, or validation gates.
 3. **Optimize:** choose one orchestrator, one source-of-truth policy, and a staged/parallel execution plan.
-4. **Store:** write the chosen plan and durable lessons into project docs/memory.
+4. **Return:** hand the resolved policy back to the selected workflow owner. Keep decisions in the response or required validation artifact; persist lessons only when explicitly requested.
 
 ## Skill category map
 
@@ -26,40 +26,23 @@ Use a **Merge → Consistency → Optimize → Store** cycle:
 - **Animation/motion design:** `texture-state-animation`, `orbital-hud-motion`, `animation-quality-gate`, coordinated by `blender-animation`.
 - **Task-specific/full workflow:** `mascot-logo-reconstruction`.
 
-## Activation precedence
+## Activation and ownership
 
-For a task involving references/templates/textures:
+Follow `../../references/intent-routing.md`, the authority for workflow selection. Enter this manual only for an actual conflict between active manuals; a multi-phase request alone does not require harmonization. Select one owner and return to it once the conflict is resolved.
 
-1. `blender-skill-harmonizer` — choose the pipeline and conflict policy.
-1a. `quality-refinement-autoloop` — if output is rejected/subpar, freeze product work, diagnose, sanitize/patch generic skill knowledge, validate, then retry.
-2. `reference-analysis-validator` — source manifest and source-of-truth classification.
-3. `orthographic-registration` — view consistency and coordinate contract.
-4. `multiview-constraint-solver` — rigid feasibility and canonical view policy.
-5. `fit-repair-optimizer` — dependency repair queue if validation fails.
-6. `source-part-segmentation` — split overlapping structural/decorative masks.
-7. `contour-to-mesh` / `wireframe-to-3d` / `blender-modeling` — geometry, selected by source type.
-8. `texture-driven-mesh-fitting` + `landmark-fit-repair` — fit mesh boundaries and named landmarks to source/texture.
-9. `atlas-uv-fitting` / `blender-uv-texturing` / `closed-surface-uv-coverage` — UV, texture fit, and full front/back/side surface coverage.
-10. `multiview-fit-loop` — render/compare/adjust loop.
-11. `reference-look-calibration` + `blender-materials` / `blender-lighting` / `blender-rendering` — look only after geometry/UV gates.
-12. `blender-export` — only after validation gates.
-13. `blender-animation` — only after static fit acceptance.
-14. `texture-state-animation` / `orbital-hud-motion` — design texture/HUD motion as layered, source-derived animation.
-15. `animation-quality-gate` — render contact sheet and reject bad motion before final export.
+For reference-locked work, resolve source disagreement before geometry, geometry before final UV fitting, and visual/target-format validation before final export. Only include stages required by the source and requested deliverable. Animation follows accepted static geometry and needs animation QA before animated export.
 
-Generic `blender-pro-workflow` is subordinate to the reference-locked order whenever the source is a template/brand asset.
+## Conditional artifact contracts
 
-## Shared artifact contract
+Produce the artifacts required by the active stages, not a fixed bundle for every task:
 
-Every non-trivial multi-skill pipeline should keep these files in the output folder:
+- source reconstruction: `reference_manifest.json`;
+- multi-view registration: `registration_report.json`;
+- atlas fitting: `atlas_regions.json`;
+- multi-view validation: fit report and relevant overlays;
+- failed dependency gates: a repair queue if needed to coordinate repairs.
 
-- `reference_manifest.json`
-- `registration_report.json`
-- `atlas_regions.json`
-- `validation/multiview_fit_report.json`
-- `validation/*_overlay.png`
-- `ALIGNMENT_REPAIR_QUEUE.json` or equivalent when gates fail
-- `BUILD_NOTES.md`
+Ordinary material edits, lighting adjustments and exports do not need unrelated source reports. Do not create build notes or planning documents unless requested or required by the project. See `references/handoff-contracts.md` for reference-workflow handoffs.
 
 ## Conflict rules
 
@@ -95,12 +78,12 @@ Parallel lanes allowed after their blockers clear:
 
 ## Script
 
-- `scripts/skill_graph_audit.py` audits the local manifest, roles, missing paths, and overlap warnings.
+- `scripts/skill_graph_audit.py --skill-root <absolute-handbook-root>` checks index coverage, manual names, explicit resource paths, Python syntax and eval JSON. It writes JSON to stdout (optional `--out`) and exits nonzero on errors; it does not prove live Blender behavior. No manifest is required.
 
 
 ## Animation handoff rule
 
-For reference-locked mascots/logos, animation is not a generic spin/pulse task. Use `texture-state-animation` for material/texture state changes, `orbital-hud-motion` for circles/HUD/aura, and `animation-quality-gate` before accepting or exporting. If an animation is rejected as ugly, run a RALPH loop before rebuilding.
+For reference-locked mascots/logos, animation is not a generic spin/pulse task. Use `texture-state-animation` for material/texture state changes, `orbital-hud-motion` for circles/HUD/aura, and `animation-quality-gate` before accepting or exporting. If animation fails, diagnose the failed dimension and follow artifact recovery; skill edits require a separate explicit request.
 
 ## Closed-surface coverage handoff rule
 
@@ -108,4 +91,4 @@ For closed or extruded reference-locked assets, front texture fit is not enough.
 
 ## Quality-refinement autoloop handoff rule
 
-When a user rejects output quality, or repeated failures show missing skill depth, do not continue blind retries. Invoke `quality-refinement-autoloop`: preserve the baseline, capture evidence, classify failure dimension, decide whether existing skills are sufficient, sanitize any new lesson into generic skill guidance, validate the skill stack, then repair the artifact. Publication prep is only done on explicit user request.
+When a user rejects output quality, or repeated failures show missing skill depth, do not continue blind retries. Invoke `quality-refinement-autoloop`: preserve the baseline, capture evidence, classify failure dimension, decide whether existing skills are sufficient, repair the artifact with the existing methods, then revalidate. Skill maintenance and publication prep occur only when explicitly requested.

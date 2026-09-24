@@ -20,6 +20,6 @@ Use these as starting ranges for a real-time target. The project's engine or art
 
 ## Enforcement points
 
-- `retopology/MANUAL.md` — enforce budget while building the low-poly mesh.
-- `asset-optimization/MANUAL.md` — audit before export.
-- `qa-review/MANUAL.md` — fail the gate when budget or naming is off.
+- `../02-modeling/retopology/MANUAL.md` — enforce budget while building the low-poly mesh.
+- `../07-delivery/asset-optimization/MANUAL.md` — audit before export.
+- `../09-quality-gates/qa-review/MANUAL.md` — fail the gate when budget or naming is off.

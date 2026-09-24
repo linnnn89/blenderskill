@@ -11,7 +11,7 @@ End-to-end guidance for putting a real scene together. This skill answers "in wh
 
 ## Reference-locked override
 
-If a task involves source templates, orthographic references, brand mascots, or fit validation, defer ordering to `blender-skill-harmonizer` and the reference-locked skills. The generic production order is subordinate to source-of-truth gates.
+If a task involves source templates, orthographic references, brand mascots, or fit validation, select the reference workflow owner through `../../references/intent-routing.md`; consult `blender-skill-harmonizer` only for actual conflicts. The generic production order is subordinate to source-of-truth gates.
 
 ## The 11-step canonical order
 

@@ -360,5 +360,5 @@ The reference covers: bmesh.ops cookbook, all `bpy.ops.mesh.*` operators worth k
 
 - Wireframe drawing → 3D model: use `wireframe-to-3d`
 - Sculpting strokes: Blender's sculpt mode is gestural; can't be driven well from text
-- Sweep-along-path / lofting / curve-driven shapes: covered in `wireframe-to-3d/references/blender-patterns.md`
+- Sweep-along-path / lofting / curve-driven shapes: covered in `../wireframe-to-3d/references/blender-patterns.md`
 - Materials / lighting / rendering: redirect to those skills

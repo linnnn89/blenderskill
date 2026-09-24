@@ -58,4 +58,4 @@ Full matrix and smoke test: `${COMMANDCODE_SKILL_DIR}/references/blender-version
 
 ## Escalation rule
 
-If the same failure class repeats after a fix attempt, stop patching and load `quality-refinement-autoloop` — the gap is usually missing skill depth or skill interference, not a one-line bug. When two skills disagree about the artifact, `blender-skill-harmonizer` owns the resolution.
+If the same failure class repeats after a fix attempt, stop patching and load `quality-refinement-autoloop` — collect evidence and distinguish an artifact defect from an instruction conflict. Ordinary recovery does not authorize skill edits. When two skills disagree about the artifact, `blender-skill-harmonizer` owns the resolution.

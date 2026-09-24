@@ -11,7 +11,7 @@ This is the top-level skill for 1:1 brand mascot reconstruction. It chains the s
 
 ## Harmonization requirement
 
-For mascot/logo work, use `blender-skill-harmonizer` first when multiple source types or validation failures are present. It sets canonical source policy and prevents conflicts between reconstruction, UV, fit-repair, lighting, export, and animation skills.
+For mascot/logo work, this manual owns the workflow selected by `../../references/intent-routing.md`. Consult `blender-skill-harmonizer` only when active manuals disagree about source policy, ownership or order; multiple source types or a failed render alone do not require it.
 
 ## Skill chain
 

@@ -38,7 +38,7 @@ Where is this asset going?
 
 ## glTF / GLB — the modern web/AR standard
 
-**Already covered in detail** in `wireframe-to-3d/references/best-practices.md`. Quick reminders:
+**Already covered in detail** in `${COMMANDCODE_SKILL_DIR}/02-modeling/wireframe-to-3d/references/best-practices.md`. Quick reminders:
 
 - **GLB** = single binary file (preferred); **glTF** = JSON + .bin + textures (debug-friendly).
 - **Material support**: only Principled BSDF exports cleanly. Procedural shaders must be baked.

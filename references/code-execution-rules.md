@@ -1,15 +1,15 @@
 # Code-Execution Rules for `mcp__blender__execute_blender_code`
 
-Everything you emit runs in a fresh, isolated namespace inside Blender. These rules are non-negotiable — most "it worked in one call but failed in the next" bugs come from violating rule 1 or 2.
+Discover the actual execution tool and its schema first. Write self-contained calls rather than relying on interpreter state persisting across calls.
 
 ---
 
 ## The five hard rules
 
-1. **Each call is a fresh namespace.** Only `bpy` is pre-imported. Re-import `math`, `bmesh`, `numpy`, `os`, etc. in *every* call that needs them.
+1. **Treat each call as independent.** Import `bpy`, `math`, `bmesh` and any other required modules explicitly; do not assume imports or variables survive.
 2. **Identify objects by stable name, never by Python variable.** `bpy.data.objects['GEO-sword']` survives across calls; a `sword = ...` assignment does not.
 3. **Print structured output** so you can parse the result back. End each chunk with `print(f"...")` reporting what changed — object names, vertex counts, file paths.
-4. **Chunk the work.** 180-second timeout per call. Do not dump 500 lines in one call — split into ~5–20-line chunks.
+4. **Chunk at meaningful checkpoints.** Use the live tool timeout and operation cost. Keep long renders separate from setup; fixed line counts are not a reliability guarantee.
 5. **Use Blender Studio naming conventions** for everything you create (`GEO-`, `MAT-`, `LGT-`, `CAM-`, `ARM-`, `COL-`). Never leave anything named `Cube.027`.
 
 ---

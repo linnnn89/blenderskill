@@ -1,5 +1,7 @@
 # Blender skill handoff contracts
 
+These contracts apply only to active reference-reconstruction stages. Ownership follows `../../../references/intent-routing.md`; an ordinary edit does not require the entire chain.
+
 ## Reference analysis → registration
 
 Input: source image folders.
@@ -38,6 +40,6 @@ Repair optimizer owns sequential/parallel scheduling after failures.
 ## Repair optimizer → export
 
 Input: all gates passed or documented conflict policy.
-Output: final `.blend`, base `.glb`, optional context/aura `.glb`, build notes.
+Output: final `.blend`, base `.glb`, optional context/aura `.glb`; build notes only when requested or required by the project.
 
 Export skill refuses final export if validation gates are missing.

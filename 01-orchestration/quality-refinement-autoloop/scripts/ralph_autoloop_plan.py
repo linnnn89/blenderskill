@@ -27,6 +27,8 @@ def main():
     ap.add_argument('--feedback', required=True)
     ap.add_argument('--artifact', default='')
     ap.add_argument('--out')
+    ap.add_argument('--skill-maintenance', action='store_true',
+                    help='Only for an explicitly requested handbook maintenance task')
     args=ap.parse_args()
     text=(args.feedback+' '+args.artifact).lower()
     scores={k:sum(1 for kw in kws if kw in text) for k,kws in KEYWORDS.items()}
@@ -39,8 +41,11 @@ def main():
         'primary_failure':ranked[0],
         'failure_dimensions':ranked,
         'candidate_skills':sorted({s for d in ranked for s in SKILL_HINTS[d]}),
-        'phases':['freeze_baseline','capture_evidence','diagnose','decide_skill_gap','sanitize_lesson','patch_skill_if_needed','validate_skill','repair_product','release_prep_if_requested'],
-        'hard_gates':['do_not_rebuild_before_skill_gap_decision','do_not_publish_project_specific_terms','run_validation_report_before_final']
+        'mode': 'skill_maintenance' if args.skill_maintenance else 'artifact_recovery',
+        'phases': (['capture_evidence','confirm_reusable_gap','sanitize_lesson','patch_skill','validate_skill']
+                   if args.skill_maintenance else ['preserve_baseline','capture_evidence','diagnose','repair_artifact','verify_failed_workflow']),
+        'max_unsuccessful_cycles': 3,
+        'hard_gates':['diagnose_before_retry','respect_task_scope','verify_before_success','stop_after_three_unsuccessful_cycles']
     }
     txt=json.dumps(plan,indent=2)
     if args.out: open(args.out,'w').write(txt)
