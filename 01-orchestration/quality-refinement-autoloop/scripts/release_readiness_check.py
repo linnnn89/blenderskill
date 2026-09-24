@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Lightweight release-readiness checks for cc-blender-skill."""
+"""Upstream plugin repository release checks, not an installed-handbook gate.
+
+For this standalone handbook use skill_graph_audit.py instead.
+"""
 import argparse, json, re
 from pathlib import Path
 
@@ -10,7 +13,18 @@ def main():
     ap.add_argument('--out')
     args=ap.parse_args()
     root=Path(args.repo_root)
-    manifest=json.loads((root/'plugin/manifest.json').read_text())
+    required = ['plugin/manifest.json', 'README.md', 'plugin/README.md', 'CHANGELOG.md']
+    missing_layout = [name for name in required if not (root/name).is_file()]
+    if missing_layout:
+        report = {'schema': 'cc_blender_release_readiness.v1', 'passed': False,
+                  'error': 'This checker requires the upstream plugin repository. Use skill_graph_audit.py for the installed handbook.',
+                  'missing': missing_layout}
+        txt = json.dumps(report, indent=2)
+        if args.out:
+            Path(args.out).write_text(txt, encoding='utf-8')
+        print(txt)
+        raise SystemExit(2)
+    manifest=json.loads((root/'plugin/manifest.json').read_text(encoding='utf-8'))
     checks=[]
     def check(name, ok, detail=''):
         checks.append({'name':name,'ok':bool(ok),'detail':detail})

@@ -1,7 +1,6 @@
 ---
 name: blender-skill
 description: Entry point and router for a 123-manual Blender 3D production handbook covering modeling, surfacing, lighting, animation, physics, scene assembly, export, and art direction.
-when_to_use: Any 3D creation, modification, lighting, rendering, animation, simulation, or export task in Blender, or matching reference images/blueprints.
 ---
 
 # Blender Handbook — Router
@@ -16,9 +15,15 @@ ${COMMANDCODE_SKILL_DIR}/<group>/INDEX.md             ← Level 1: Domain member
 ${COMMANDCODE_SKILL_DIR}/<group>/<skill>/MANUAL.md    ← Level 2: Task-specific production manual
 ```
 
-1. **Route**: Match user intent to 1–2 domain groups from the **Level-1 Routing Table** below.
+1. **Route**: Start with the 1–2 domain groups needed for the current phase; load additional groups only as their work becomes relevant. Choose one workflow owner using `references/intent-routing.md`, the authority for activation and recovery precedence.
 2. **Index**: Read that group's `<group>/INDEX.md` to pick the concrete manual.
 3. **Execute**: Read and strictly follow only the relevant `MANUAL.md` files in production order.
+
+## Paths and runtime capabilities
+
+`${COMMANDCODE_SKILL_DIR}` is a documentation placeholder for the absolute directory containing this `SKILL.md`, not an automatically defined environment variable. Resolve it before executing any example; quote paths containing spaces. Paths inside a manual are relative to that manual unless the root placeholder is used. If Blender runs on another host, do not assume it can read local files: send the required script text through the available execution tool instead.
+
+Discover the connected MCP tool names and schemas before using them. Query the live Blender version before version-sensitive operations. The names and limits in `references/mcp-integration.md` are examples, not capability guarantees. Load the separate `blender-mcp` skill only for transport/setup problems.
 
 ## Level-1 Routing Table
 
@@ -39,24 +44,13 @@ ${COMMANDCODE_SKILL_DIR}/<group>/<skill>/MANUAL.md    ← Level 2: Task-specific
 
 ## Always-On Rules (Critical Baseline)
 
-1. **Scene Preflight**:
-   - Check connection via `get_scene_info`. If disconnected, instruct user to start Blender & enable the BlenderMCP addon (port 9876).
-   - If the scene is empty, build fresh. If existing objects exist, preserve them unless asked. A lone default cube is safe to remove.
-2. **Environment Reset**:
-   - Always run `scripts/reset_world.py` before building to prevent missing texture nodes flooding the render magenta:
-     `exec(open(r"${COMMANDCODE_SKILL_DIR}/scripts/reset_world.py").read())`
-3. **Code Execution Standards**:
-   - Each MCP call runs in a fresh namespace. Re-import necessary modules (except `bpy`).
-   - Prefix names systematically (`GEO-`, `MAT-`, `LGT-`, `CAM-`, `ARM-`, `COL-`). Chunk work into ~5–20 lines. Detailed rules: `references/code-execution-rules.md`.
-4. **Camera & Visual Validation Guard**:
-   - Always ensure an active camera exists before rendering: `scripts/ensure_camera.py`.
-   - Never rely on numeric metrics alone. Inspect viewport via `get_viewport_screenshot` to confirm visibility, framing, and proportions (`references/output-and-reporting.md`).
-5. **Real Dimensions**:
-   - Never guess real-world scales; verify bounds against `references/common-object-dimensions.md`.
-6. **Pre-Export Hygiene**:
-   - Before exporting (glTF/FBX), bake object transforms with `scripts/apply_transforms.py` and purge orphan blocks with `scripts/cleanup_unused.py`.
-7. **Production Sequence**:
-   - Reference/Plan → Block-out → Camera lock → Light v1 → Refine geometry → Materials v1 → Light v2 → Final render → Composite → Export (`references/assembly-order.md`).
+1. **Scope preflight**: Inspect the current scene through the available scene-info tool. Identify target objects/collections before mutation; preserve other objects, worlds, cameras and user data. A default-named cube is not proof that it is disposable. Knowledge-only requests do not require a Blender connection.
+2. **World inspection**: Keep existing lighting by default. Investigate missing image nodes if a render is magenta. For a new scene or a diagnosed, in-scope world repair, load `scripts/reset_world.py` and explicitly call `reset_world(scene=target_scene)`. It assigns a new world without altering the old world data block; do not run it for every build.
+3. **Execution**: Re-import required modules per call and use stable object names. Size calls to the live timeout and meaningful checkpoints, not a fixed line count. Naming prefixes are conventions, not permission to modify every matching object (`references/code-execution-rules.md`).
+4. **Visual validation**: Preserve an existing active camera. When rendering requires a missing camera, `scripts/ensure_camera.py` can create one. Inspect the actual render or viewport for visibility, framing and proportions (`references/output-and-reporting.md`).
+5. **Dimensions**: User measurements and source contracts take priority. Use `references/common-object-dimensions.md` as a plausibility baseline, not a substitute for unknown exact dimensions.
+6. **Export scope**: Export only the agreed objects. Apply transforms only when the target requires them; `scripts/apply_transforms.py` requires explicit names and flags, e.g. `apply_transforms(names=["GEO-prop"], scale=True)`. Rigs, animation and shared data need a separately verified export-copy workflow. Cleanup is optional: load `scripts/cleanup_unused.py`, preview explicit task-owned candidates with `cleanup_unused({"materials": ["MAT-temporary"]})`, and set `dry_run=False` only for the inspected list. These three helpers only define functions when loaded; they never mutate the scene automatically.
+7. **Sequence and recovery**: Follow the selected workflow in `references/intent-routing.md`. Art-direction manuals constrain appearance; they do not own execution order. Repairing an artifact does not authorize modifying the installed handbook or persistent memory.
 
 ## Core Orchestrator References
 

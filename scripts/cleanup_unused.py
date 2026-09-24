@@ -1,48 +1,40 @@
-"""Remove orphan data blocks to keep .blend files lean.
+"""Preview or remove explicitly named, unused task-owned data blocks.
 
-Blender accumulates unused materials, meshes, images, and node groups
-as you iterate. Run this before export to avoid shipping dead weight.
+Loading has no scene side effects. Inspect ownership before passing candidates:
+    cleanup_unused({"materials": ["MAT-temporary"]})  # preview only
+    cleanup_unused({"materials": ["MAT-temporary"]}, dry_run=False)
 
-Usage (via mcp__blender__execute_blender_code):
-
-    exec(open(r"${COMMANDCODE_SKILL_DIR}/scripts/cleanup_unused.py").read())
-
-Loading the file runs the cleanup and prints a summary. To preview
-without deleting, call cleanup_unused(dry_run=True).
+This is a single scoped pass, not a recursive or whole-file orphan purge.
 """
 
 import bpy
 
-
-def cleanup_unused(dry_run=False):
-    """Purge orphan data blocks. Returns a dict of {category: count}."""
-    categories = [
-        ("materials", bpy.data.materials),
-        ("meshes", bpy.data.meshes),
-        ("images", bpy.data.images),
-        ("node_groups", bpy.data.node_groups),
-        ("textures", bpy.data.textures),
-        ("curves", bpy.data.curves),
-        ("armatures", bpy.data.armatures),
-        ("cameras", bpy.data.cameras),
-        ("lights", bpy.data.lights),
-        ("worlds", bpy.data.worlds),
-        ("actions", bpy.data.actions),
-    ]
-
-    removed = {}
-    for name, collection in categories:
-        orphans = [item for item in collection if item.users == 0]
-        removed[name] = len(orphans)
-        if not dry_run:
-            for item in orphans:
-                collection.remove(item)
-
-    return removed
+CATEGORIES = (
+    "materials", "meshes", "images", "node_groups", "textures", "curves",
+    "armatures", "cameras", "lights", "worlds", "actions",
+)
 
 
-_result = cleanup_unused()
-_total = sum(_result.values())
-_nonzero = {k: v for k, v in _result.items() if v > 0}
-_mode = "removed" if _total > 0 else "nothing to clean"
-print(f"cleanup-unused: {_mode} — total={_total} {_nonzero if _nonzero else ''}")
+def cleanup_unused(candidates, dry_run=True):
+    """Return eligible counts; preserve used, linked and fake-user data."""
+    unknown = set(candidates) - set(CATEGORIES)
+    if unknown:
+        raise ValueError(f"Unsupported data categories: {sorted(unknown)}")
+    plan = {}
+    for category, names in candidates.items():
+        if isinstance(names, str):
+            raise ValueError("Each category requires a list of explicit data-block names")
+        collection = getattr(bpy.data, category)
+        blocks = []
+        for name in dict.fromkeys(names):
+            item = collection.get(name)
+            if item is None:
+                raise ValueError(f"Unknown data block: {category}/{name}")
+            if item.users == 0 and not item.use_fake_user and item.library is None:
+                blocks.append(item)
+        plan[category] = blocks
+    if not dry_run:
+        for category, blocks in plan.items():
+            for item in blocks:
+                getattr(bpy.data, category).remove(item)
+    return {category: len(blocks) for category, blocks in plan.items()}

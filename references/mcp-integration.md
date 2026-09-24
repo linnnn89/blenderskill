@@ -6,7 +6,13 @@ The PyPI package was renamed from `blender-mcp` to **`mcp-for-blender`** (existi
 
 ---
 
-## Core tools (always available)
+## Capability discovery
+
+Inspect the live tool inventory and schemas before executing. Tool namespaces, argument names, optional asset services, limits and protocol versions vary by server build. Query the running Blender version with the available execution tool (for example `bpy.app.version_string`). Missing optional asset tools do not block manual modeling; do not install services, upload references or download assets beyond the user-authorized scope.
+
+The tables below are integration examples from a particular server implementation, not a live compatibility contract. Verify version-specific details against the connected server or its matching documentation. Root-path substitution is defined in the entry `SKILL.md`.
+
+## Core tool examples
 
 | Tool | Purpose | Key parameters |
 |------|---------|----------------|
@@ -115,7 +121,7 @@ Another AI model generation option.
 
 ---
 
-## Connection limits
+## Recorded connection limits (verify against the running server)
 
 | Parameter | Value | Source |
 |-----------|-------|--------|

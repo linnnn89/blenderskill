@@ -6,6 +6,8 @@ These manuals define the design language (palette, shape logic, materials, light
 
 Choose art direction along orthogonal axes. Default selection is **one base style + at most one mood/era/world/genre manual**. Open more only when the request explicitly names them; otherwise the result becomes incoherent and wastes context.
 
+These are appearance constraints, not workflow owners. Execution order and recovery follow `../references/intent-routing.md`; do not start a second production pipeline from a style choice.
+
 Paths below are relative to this file's own directory.
 
 ## Styles
