@@ -38,7 +38,7 @@ blender-skill/
    - **Level 1 (`<group>/INDEX.md`)**: Group index mapping user requests to specific manuals.
    - **Level 2 (`<group>/<skill>/MANUAL.md`)**: Step-by-step instructions for concrete tasks.
 2. **MCP Integration**:
-   - Best paired with Blender MCP servers (such as `ahujasid/blender-mcp`) to execute Python code, inspect scene data, control viewports, and manipulate Blender programmatically.
+   - Choose the connected Blender Lab or community MCP using the [backend tool map](references/mcp-integration.md). For static Unreal assets, the [UCX export workflow](07-delivery/unreal-export/MANUAL.md) checks evaluated hulls and exports the named mesh and colliders.
 
 ---
 
@@ -76,7 +76,7 @@ blender-skill/
    - **第 1 级（`<group>/INDEX.md`）**：进入对应的领域模块，查看手册索引与触发条件。
    - **第 2 级（`<group>/<skill>/MANUAL.md`）**：按需载入具体手册，执行对应步骤。
 2. **配合 MCP 工具**：
-   - 配合 Blender MCP（如 `ahujasid/blender-mcp` 或 `blender-finisher`），可在 AI 环境中直接执行 Blender Python 脚本、抓取视口渲染与检查场景拓扑。
+   - 根据当前连接选择 Blender Lab、社区 MCP 或 NIUA Finisher。场景查询、截图和结果读取方式见[后端工具对照](references/mcp-integration.md)。向 Unreal 交付带凸包碰撞的静态模型时，可按名称预检并导出 FBX。操作示例见 [Unreal 导出手册](07-delivery/unreal-export/MANUAL.md)。
 
 ### 维护与验证 / Maintenance and validation
 
@@ -87,7 +87,7 @@ python 01-orchestration/blender-skill-harmonizer/scripts/skill_graph_audit.py --
 python -m unittest discover -s tests -v
 ```
 
-结构检查覆盖领域索引、手册名称、显式资源引用、Python 语法与 eval JSON；错误返回非零退出码，缺少历史示例图片单独报告为警告。回归用例使用临时文件；Blender 集成用例通过独立后台进程、出厂配置和临时场景检查辅助脚本及指定对象的 GLB 导出，不连接已打开的场景。可用 `BLENDER_EXECUTABLE` 指定程序路径；未找到 Blender 时该用例会跳过。它不覆盖完整渲染、动画或所有引擎的验收。
+结构检查覆盖领域索引、手册名称、显式资源引用、Python 语法与 eval JSON，错误返回非零退出码。缺少历史示例图片会单列为警告。Blender 集成用例在独立的出厂配置后台进程中运行，使用临时场景和文件。用例直接执行手册里的相机环绕、插值、EEVEE 和减面示例，读回渲染图片，检查指定对象的 GLB，以及带 UCX 碰撞体的 FBX 回读结果。可用 `BLENDER_EXECUTABLE` 指定程序路径，未找到 Blender 时会跳过对应测试。Blender 版本及验证范围见[兼容性说明](references/blender-version-compat.md)。
 
 `reset_world.py`、`apply_transforms.py`、`cleanup_unused.py` 加载时仅定义函数。旧的“执行整个脚本即修改场景”调用必须改成加载后显式调用：变换需要对象名称和操作选项；清理需要候选数据块并默认预览。运行示例前，将 `${COMMANDCODE_SKILL_DIR}` 替换为当前安装目录的绝对路径。
 

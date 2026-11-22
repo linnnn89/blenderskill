@@ -1,11 +1,13 @@
-"""Three focused regressions; Blender runs in a separate factory-startup process."""
+"""Handbook regressions; Blender runs in a separate factory-startup process."""
 import json
 import os
 from pathlib import Path
+import runpy
 import shutil
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -64,6 +66,36 @@ class HandbookTests(unittest.TestCase):
             self.assertNotIn("Traceback", release.stderr)
 
     def test_blender_helpers_preserve_scene_and_limit_export_scope(self):
+        output = self.run_blender(BLENDER_SCENARIO)
+        self.assertIn("HANDBOOK_SCENE_CHECK_OK", output)
+        print(output.strip())
+
+    def test_blender_runtime_recipes(self):
+        cases = ROOT / "tests/blender_backend_cases.py"
+        self.assertIn("RECIPES_OK", self.run_blender(cases.read_text(encoding="utf-8"), "recipes"))
+
+    def test_eevee_42_preset_with_no_separate_fast_gi_switch(self):
+        # Blender 4.2 RNA exposes fast_gi_method and ray tracing without use_fast_gi.
+        method = SimpleNamespace(enum_items={"AMBIENT_OCCLUSION_ONLY"})
+        eevee = SimpleNamespace(bl_rna=SimpleNamespace(properties={"fast_gi_method": method}),
+                                use_raytracing=False, fast_gi_distance=0, fast_gi_method="GLOBAL_ILLUMINATION",
+                                ray_tracing_options=SimpleNamespace(trace_max_roughness=1.0))
+        engines = {"engine": SimpleNamespace(default="BLENDER_EEVEE_NEXT")}
+        scene = SimpleNamespace(eevee=eevee, render=SimpleNamespace(bl_rna=SimpleNamespace(properties=engines)))
+        configure = runpy.run_path(str(ROOT / "scripts/blender_compat.py"))["configure_eevee"]
+        report = configure(scene)
+        self.assertEqual(scene.render.engine, "BLENDER_EEVEE_NEXT")
+        self.assertEqual(eevee.fast_gi_method, "AMBIENT_OCCLUSION_ONLY")
+        self.assertTrue(eevee.use_raytracing)
+        self.assertFalse(hasattr(eevee, "use_fast_gi"))
+        self.assertEqual(eevee.ray_tracing_options.trace_max_roughness, 0.5)
+        self.assertIn("use_bloom", report["unavailable_legacy_options"])
+
+    def test_checked_collision_fbx_round_trip(self):
+        cases = ROOT / "tests/blender_backend_cases.py"
+        self.assertIn("COLLISION_OK", self.run_blender(cases.read_text(encoding="utf-8"), "collision"))
+
+    def run_blender(self, source, *case):
         executable = os.environ.get("BLENDER_EXECUTABLE") or shutil.which("blender")
         if not executable:
             installations = sorted(Path("C:/Program Files/Blender Foundation").glob("Blender */blender.exe"))
@@ -73,7 +105,7 @@ class HandbookTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             temp = Path(tmp)
             script = temp / "scene_check.py"
-            script.write_text(BLENDER_SCENARIO, encoding="utf-8")
+            script.write_text(source, encoding="utf-8")
             env = dict(os.environ)
             for key in ("BLENDER_USER_CONFIG", "BLENDER_USER_SCRIPTS", "BLENDER_USER_DATAFILES"):
                 folder = temp / key
@@ -81,11 +113,10 @@ class HandbookTests(unittest.TestCase):
                 env[key] = str(folder)
             result = subprocess.run(
                 [executable, "--background", "--factory-startup", "--disable-autoexec",
-                 "--python-exit-code", "1", "--python", str(script), "--", str(ROOT), str(temp)],
+                 "--python-exit-code", "1", "--python", str(script), "--", str(ROOT), str(temp), *case],
                 capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=120)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertIn("HANDBOOK_SCENE_CHECK_OK", result.stdout)
-            print(result.stdout.strip())
+            return result.stdout
 
 
 BLENDER_SCENARIO = r"""

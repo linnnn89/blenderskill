@@ -59,7 +59,7 @@ Do not declare a 1:1 reconstruction complete without `reference-analysis-validat
 
 | Situation | Do this |
 |-----------|---------|
-| Request contains "human" / "character" / "face" / "person" | Pure primitives produce a silhouette, **not** a face. Use the asset-generation MCP tools (`download_polyhaven_asset`, `download_sketchfab_model`, `generate_hyper3d_model_via_text`) for a base mesh, then chain materials + lighting + render. Load `character-artist` for proportions. Do NOT claim a sphere-with-features looks human. |
+| Request contains "human" / "character" / "face" / "person" | Start from the supplied base mesh or, when asset sourcing is in scope, use the provider tools advertised by the selected backend in `references/mcp-integration.md`. Load `character-artist` for proportions, then chain materials, lighting and render. Pure primitives can establish the silhouette. |
 | Elongated subject (sword, spike, pole) | Orient the broad axis toward the camera — see `blender-modeling` "Critical: axis orientation for elongated objects". |
 | Scene already contains objects | Operate on them. Do **not** delete unless asked. A default name alone does not establish ownership or permission to delete. |
 | Ambiguous single request | Inspect context first; ask only if the unresolved choice materially affects scope or the deliverable. Otherwise use a conservative default. |

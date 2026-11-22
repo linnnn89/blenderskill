@@ -101,28 +101,18 @@ For perfectly constant spin, set keyframes to Linear interpolation (Recipe 3).
 
 ### Recipe 3 — Set keyframes to Linear interpolation
 
-⚠ **Blender 5.x changed the Action API.** Legacy `action.fcurves` was removed in favour of layered Actions: `action.layers[].strips[].channelbags[].fcurves`. Use this compat helper.
+Layered Actions can animate several objects in separate slots. Load the helper with the resolved handbook path and pass the object whose curves you intend to edit. Objects assigned to the same Action and slot share those curves.
 
 ```python
 import bpy
 
-def get_fcurves_compat(action):
-    """Return all fcurves on an Action — works on both legacy (≤4.x) and layered (5.x+) actions."""
-    if hasattr(action, 'fcurves'):
-        return list(action.fcurves)
-    fcurves = []
-    for layer in action.layers:
-        for strip in layer.strips:
-            if hasattr(strip, 'channelbags'):
-                for cb in strip.channelbags:
-                    fcurves.extend(cb.fcurves)
-    return fcurves
+import runpy
+compat = runpy.run_path(r"${COMMANDCODE_SKILL_DIR}/scripts/blender_compat.py")
 
 obj = bpy.data.objects['GEO-target']
-if obj.animation_data and obj.animation_data.action:
-    for fc in get_fcurves_compat(obj.animation_data.action):
-        for kp in fc.keyframe_points:
-            kp.interpolation = 'LINEAR'
+for fc in compat['action_fcurves'](obj):
+    for kp in fc.keyframe_points:
+        kp.interpolation = 'LINEAR'
 print(f"interp:linear {obj.name}")
 ```
 
@@ -133,21 +123,12 @@ Other options: `'BEZIER'` (default), `'CONSTANT'` (step), `'SINE'`, `'QUAD'`, `'
 ```python
 import bpy
 
-# (Re-use get_fcurves_compat from Recipe 3.)
-def get_fcurves_compat(action):
-    if hasattr(action, 'fcurves'):
-        return list(action.fcurves)
-    fcurves = []
-    for layer in action.layers:
-        for strip in layer.strips:
-            if hasattr(strip, 'channelbags'):
-                for cb in strip.channelbags:
-                    fcurves.extend(cb.fcurves)
-    return fcurves
+import runpy
+compat = runpy.run_path(r"${COMMANDCODE_SKILL_DIR}/scripts/blender_compat.py")
 
 obj = bpy.data.objects['GEO-target']
 target_fc = None
-for fc in get_fcurves_compat(obj.animation_data.action):
+for fc in compat['action_fcurves'](obj):
     if fc.data_path == 'location' and fc.array_index == 2:   # Z axis
         target_fc = fc
         break
@@ -258,19 +239,10 @@ obj.rotation_euler = (0, math.radians(-2), 0)
 obj.keyframe_insert('rotation_euler', frame=96)
 
 # Set extrapolation mode to cycle (loop)
-def get_fcurves_compat(action):
-    if hasattr(action, 'fcurves'):
-        return list(action.fcurves)
-    fcurves = []
-    for layer in action.layers:
-        for strip in layer.strips:
-            if hasattr(strip, 'channelbags'):
-                for cb in strip.channelbags:
-                    fcurves.extend(cb.fcurves)
-    return fcurves
-
-if obj.animation_data and obj.animation_data.action:
-    for fc in get_fcurves_compat(obj.animation_data.action):
+import runpy
+compat = runpy.run_path(r"${COMMANDCODE_SKILL_DIR}/scripts/blender_compat.py")
+for fc in compat['action_fcurves'](obj):
+    if fc.data_path == 'rotation_euler' and not any(m.type == 'CYCLES' for m in fc.modifiers):
         fc.modifiers.new('CYCLES')
 print('animated:idle_loop')
 ```

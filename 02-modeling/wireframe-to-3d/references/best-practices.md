@@ -521,7 +521,7 @@ def apply_decimate(mesh_obj, target_ratio=0.8):
     
     decimate = mesh_obj.modifiers.new(name='Decimate', type='DECIMATE')
     decimate.ratio = target_ratio
-    decimate.use_collapse_degenerate = True
+    decimate.decimate_type = 'COLLAPSE'
     
     bpy.ops.object.modifier_apply(modifier=decimate.name)
     

@@ -80,34 +80,14 @@ print('render:cycles_draft')
 ### Recipe 3 — EEVEE preset
 
 ```python
-import bpy
+import bpy, runpy
 
-scene = bpy.context.scene
-
-# Engine name changed across versions:
-#   Blender ≤ 4.1:        'BLENDER_EEVEE'
-#   Blender 4.2 only:     'BLENDER_EEVEE_NEXT' (transitional; replaced)
-#   Blender ≥ 5.0:        'BLENDER_EEVEE' (the new EEVEE replaced the old)
-# Try the new name first; fall back if it doesn't exist on this Blender.
-try:
-    scene.render.engine = 'BLENDER_EEVEE_NEXT'
-except (TypeError, ValueError):
-    scene.render.engine = 'BLENDER_EEVEE'
-
-# EEVEE settings (eevee namespace exists in 4.x and 5.x)
-if hasattr(scene, 'eevee'):
-    scene.eevee.taa_render_samples = 64
-    scene.eevee.taa_samples = 16
-scene.eevee.use_gtao = True            # screen-space AO
-scene.eevee.gtao_distance = 0.2
-scene.eevee.use_bloom = True            # glow
-scene.eevee.use_ssr = True              # screen-space reflections
-scene.eevee.use_ssr_refraction = True   # for glass
-scene.eevee.use_volumetric_lights = True
-scene.render.resolution_x = 1920
-scene.render.resolution_y = 1080
-print('render:eevee_preset')
+compat = runpy.run_path(r"${COMMANDCODE_SKILL_DIR}/scripts/blender_compat.py")
+result = compat['configure_eevee'](bpy.context.scene)
+print(result)
 ```
+
+The preset selects the installed EEVEE engine and reports the ambient occlusion method and unavailable legacy switches. On builds with Fast GI it uses the AO method with a 0.2 m distance and enables ray tracing. A roughness threshold of 1 disables Fast GI, so the preset lowers that value to 0.5. For bloom on newer builds, configure compositor Glare when the shot calls for it.
 
 **EEVEE limitations to know**:
 - Reflections are screen-space (can't reflect what's off-screen) — workaround: place Reflection Plane / Cubemap probes

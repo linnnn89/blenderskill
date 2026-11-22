@@ -229,10 +229,11 @@ pivot.rotation_euler = (0, 0, math.radians(360))
 pivot.keyframe_insert('rotation_euler', frame=240)
 
 # Set linear interpolation for constant orbit speed
-if pivot.animation_data and pivot.animation_data.action:
-    for fc in pivot.animation_data.action.fcurves:
-        for kp in fc.keyframe_points:
-            kp.interpolation = 'LINEAR'
+import runpy
+compat = runpy.run_path(r"${COMMANDCODE_SKILL_DIR}/scripts/blender_compat.py")
+for fc in compat['action_fcurves'](pivot):
+    for kp in fc.keyframe_points:
+        kp.interpolation = 'LINEAR'
 
 print('camera:CAM-orbit (10s turntable)')
 ```

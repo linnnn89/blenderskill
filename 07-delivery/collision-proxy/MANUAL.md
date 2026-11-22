@@ -48,6 +48,7 @@ UCX_SM_Asset_02
 
 - Must match associated mesh naming rules for auto-association
 - Convex only for UCX
+- For Blender-side preflight and a scoped static FBX export, follow [the checked UCX workflow](../unreal-export/MANUAL.md).
 
 ## Unity Notes
 

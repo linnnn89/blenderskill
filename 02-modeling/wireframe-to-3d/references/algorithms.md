@@ -478,7 +478,7 @@ bpy.ops.export_scene.gltf(
 ```python
 modif = mesh_obj.modifiers.new(name='Decimate', type='DECIMATE')
 modif.ratio = 0.8  # keep 80% of faces, remove 20%
-modif.use_collapse_degenerate = True  # merge degenerate triangles
+modif.decimate_type = 'COLLAPSE'
 
 # Apply
 bpy.context.view_layer.objects.active = mesh_obj

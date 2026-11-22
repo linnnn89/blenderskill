@@ -35,6 +35,7 @@ import bpy
 bpy.ops.export_scene.gltf(
     filepath='/tmp/output.glb',
     export_format='GLB',                 # single-file binary; preferred
+    use_selection=True,                  # select the agreed export objects first
     export_apply=True,                   # apply modifiers before export
     export_materials='EXPORT',
     export_image_format='AUTO',          # PNG; AUTO falls back to JPEG for opaque images
@@ -68,7 +69,7 @@ bpy.context.view_layer.objects.active = obj
 
 mod = obj.modifiers.new('Decimate', type='DECIMATE')
 mod.ratio = 0.7    # keep 70% of faces; lower = more reduction
-mod.use_collapse_degenerate = True
+mod.decimate_type = 'COLLAPSE'
 bpy.ops.object.modifier_apply(modifier=mod.name)
 
 print(f"decimated:{obj.name} verts:{len(obj.data.vertices)}")
@@ -83,7 +84,7 @@ import bpy
 
 bpy.ops.export_scene.fbx(
     filepath='/tmp/output.fbx',
-    use_selection=False,
+    use_selection=True,               # select the agreed export objects first
     apply_unit_scale=True,
     apply_scale_options='FBX_SCALE_ALL',
     bake_space_transform=True,        # critical: applies rotation to mesh
@@ -105,6 +106,7 @@ print('export:fbx')
 ```
 
 **Common FBX gotchas**:
+- For a static Unreal mesh with UCX hulls, use the checked export in [the Unreal manual](../unreal-export/MANUAL.md). It takes exact object names.
 - Model rotated 90° in target → check `axis_up='Y', axis_forward='-Z'`
 - Model 100× too large → Apply Transform on the object before export
 - Textures missing → `embed_textures=True, path_mode='COPY'`

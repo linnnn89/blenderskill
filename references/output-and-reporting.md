@@ -8,7 +8,7 @@ The user only sees the picture and the numbers you give them. Both must be hones
 
 A render passing every numerical check (object count, vertex count, file size, no error messages) can still look completely wrong. After rendering, **always**:
 
-1. Call `mcp__blender__get_viewport_screenshot` (or read the rendered file with `Read`).
+1. Inspect the saved output or the Render Result from this render. For a viewport request, use the selected backend's capture tool from `${COMMANDCODE_SKILL_DIR}/references/mcp-integration.md`. Record a quick render or viewport fallback as such.
 2. Visually verify against the user's request. Specifically:
    - **Subject is visible and recognisable** — not a thin streak, not magenta-flooded, not entirely in shadow.
    - **Proportions match** the real-world reference dimensions for that subject (`${COMMANDCODE_SKILL_DIR}/references/common-object-dimensions.md`).

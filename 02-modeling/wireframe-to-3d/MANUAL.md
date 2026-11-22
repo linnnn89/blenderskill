@@ -239,7 +239,7 @@ bpy.context.view_layer.objects.active = obj
 
 mod = obj.modifiers.new(name='Decimate', type='DECIMATE')
 mod.ratio = 0.7
-mod.use_collapse_degenerate = True
+mod.decimate_type = 'COLLAPSE'
 bpy.ops.object.modifier_apply(modifier=mod.name)
 print(f"decimated:{obj.name} verts:{len(obj.data.vertices)}")
 ```

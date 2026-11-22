@@ -23,7 +23,7 @@ ${COMMANDCODE_SKILL_DIR}/<group>/<skill>/MANUAL.md    ← Level 2: Task-specific
 
 `${COMMANDCODE_SKILL_DIR}` is a documentation placeholder for the absolute directory containing this `SKILL.md`, not an automatically defined environment variable. Resolve it before executing any example; quote paths containing spaces. Paths inside a manual are relative to that manual unless the root placeholder is used. If Blender runs on another host, do not assume it can read local files: send the required script text through the available execution tool instead.
 
-Discover the connected MCP tool names and schemas before using them. Query the live Blender version before version-sensitive operations. The names and limits in `references/mcp-integration.md` are examples, not capability guarantees. Load the separate `blender-mcp` skill only for transport/setup problems.
+Discover the connected MCP tool names and schemas. Resolve tool names in leaf manuals through `references/mcp-integration.md` for Blender Lab, current community MCP or older installations. Confirm the intended scene on the selected server and query the live Blender version before version-sensitive operations. After a timeout, inspect that same scene or output before repeating a change. Load the separate `blender-mcp` skill for transport/setup problems.
 
 ## Level-1 Routing Table
 

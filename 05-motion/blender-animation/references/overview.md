@@ -78,14 +78,15 @@ For non-Bezier interpolation, choose easing:
 
 ```python
 # Set keyframe interpolation programmatically
-import bpy
+import bpy, runpy
 
-action = bpy.data.actions['CharAction']
-fcurve = action.fcurves.find('location', index=0)  # X-axis
-for kf in fcurve.keyframe_points:
-    kf.interpolation = 'BEZIER'
-    kf.handle_left_type = 'AUTO_CLAMPED'
-    kf.handle_right_type = 'AUTO_CLAMPED'
+compat = runpy.run_path(r"${COMMANDCODE_SKILL_DIR}/scripts/blender_compat.py")
+for fcurve in compat['action_fcurves'](bpy.data.objects['GEO-target']):
+    if fcurve.data_path == 'location' and fcurve.array_index == 0:
+        for kf in fcurve.keyframe_points:
+            kf.interpolation = 'BEZIER'
+            kf.handle_left_type = 'AUTO_CLAMPED'
+            kf.handle_right_type = 'AUTO_CLAMPED'
 ```
 
 ### Pro animation principles

@@ -1,70 +1,41 @@
 # Blender Version Compatibility Matrix
 
-This plugin is developed against **Blender 5.1.1** (validated end-to-end on macOS). Most patches include forward/backward compatibility for **Blender 4.x** users.
+The original recipe pack was validated on Blender 5.1.1 on macOS. This handbook has focused Windows regressions on Blender 5.2.2 LTS for the version probe, camera orbit, per-slot curve edits, EEVEE render, Decimate, scoped GLB and static UCX FBX export.
 
 ## Compat-critical patches in this plugin
 
 | Patch | Blender 4.x behaviour | Blender 5.x behaviour | Strategy |
 |-------|----------------------|----------------------|----------|
-| EEVEE engine name (`blender-rendering` Recipe 3) | `BLENDER_EEVEE` (4.0–4.1) or `BLENDER_EEVEE_NEXT` (4.2+) | `BLENDER_EEVEE` (5.x renamed back) | `try`/`except` with fallback — works on every version |
-| Action F-curve access (`blender-animation` Recipe 3) | `action.fcurves` (legacy actions) | `action.layers[].strips[].channelbags[].fcurves` (layered actions only) | `get_fcurves_compat()` helper: tries `.fcurves` first, falls back to walking layers |
-| `Mesh.use_auto_smooth` attribute | exists | **REMOVED** | Code wraps in `hasattr(mesh, 'use_auto_smooth')` or simply uses `bpy.ops.object.shade_smooth()` instead |
+| EEVEE engine name (`blender-rendering` Recipe 3) | `BLENDER_EEVEE` (4.0–4.1) or `BLENDER_EEVEE_NEXT` (4.2–4.5) | `BLENDER_EEVEE` | Read the built-in engine identifier from RenderSettings RNA |
+| Action F-curves (`blender-animation` Recipe 3) | Legacy Actions and, from 4.4, slotted Actions | Layered Actions | `action_fcurves(owner)` resolves the assigned slot for layered Actions and uses `action.fcurves` for legacy data |
+| `Mesh.use_auto_smooth` | Varies by minor version | Absent | Check `bpy.types.Mesh.bl_rna.properties` for availability |
 | `Subsurface IOR` and `Weight` BSDF inputs (`blender-materials` Recipe 9) | Reachable by string-key lookup | `enabled=False` flag blocks string-key lookup | `set_input(node, name, value)` helper iterates inputs to find by name |
 | Coloured-glass volume density (`blender-materials` Recipe 6b) | Same physics — recipe values are version-agnostic | Same | No special handling needed |
 
 ## What's NOT cross-tested
 
 - **Blender 3.x and earlier**: Not supported. Many recipes use Principled BSDF v2 inputs (Coat Weight, Sheen Weight, Subsurface Weight) that don't exist on the older Principled BSDF.
-- **Blender 4.0 specifically**: Not directly tested in this validation pass. The compat helpers should work but the `BLENDER_EEVEE_NEXT` engine name introduced in 4.2 means a 4.0 user hits the fallback path — verified to be `BLENDER_EEVEE`.
+- **Blender 4.x**: Current Windows regression coverage is on 5.2.2. The older runtime paths still need a 4.x installation for an end-to-end check.
 
-## Validation status (as of v0.9.0)
+## Validation status
 
 | Blender version | Status | Notes |
 |----------------|--------|-------|
-| 5.1.1 | ✅ Fully validated | All scenes (sword, bottle, chair, aviator wireframe) tested end-to-end |
-| 4.2 / 4.3 / 4.4 LTS | ⚠️ Compat code present, **not directly tested** | The try/except + helper patterns should work; would need a 4.x install to confirm |
-| 4.0 / 4.1 | ⚠️ Compat code present, **not directly tested** | Same as 4.2 — should work via fallback paths |
+| 5.2.2 LTS | Local background Blender tests | See the scoped workflows above and the tests in the handbook |
+| 5.1.1 | Historical upstream validation | Sword, bottle, chair and aviator scenes tested by the upstream project |
+| 4.x | Compatibility paths only | Runtime verification pending |
 | 3.x and earlier | ❌ Not supported | Principled BSDF v1 missing required inputs |
 
 ## How to confirm cross-version compat in your install
 
-After installing this plugin, run a quick smoke test:
+Run the installed probe through the chosen Python execution tool. Substitute the absolute handbook path.
 
 ```python
-# In Blender's Scripting workspace — paste and run:
-import bpy
-
-# 1. Test engine fallback
-scene = bpy.context.scene
-try:
-    scene.render.engine = 'BLENDER_EEVEE_NEXT'
-    print(f"engine: NEXT path used, resolved to {scene.render.engine}")
-except (TypeError, ValueError):
-    scene.render.engine = 'BLENDER_EEVEE'
-    print(f"engine: fallback path used, resolved to {scene.render.engine}")
-
-# 2. Test BSDF input access
-mat = bpy.data.materials.new('test')
-mat.use_nodes = True
-b = mat.node_tree.nodes['Principled BSDF']
-disabled_inputs = [inp.name for inp in b.inputs if not inp.enabled]
-print(f"disabled BSDF inputs (need set_input helper): {disabled_inputs}")
-bpy.data.materials.remove(mat, do_unlink=True)
-
-# 3. Test Action API
-print(f"version: {bpy.app.version_string}")
-print(f"Action.layers attribute: {hasattr(bpy.types.Action, 'layers')}")
+import runpy
+result = runpy.run_path(r"${COMMANDCODE_SKILL_DIR}/scripts/detect_blender_version.py")["result"]
 ```
 
-Expected output on Blender 5.1.1:
-```
-engine: fallback path used, resolved to BLENDER_EEVEE
-disabled BSDF inputs (need set_input helper): ['Weight', 'Subsurface IOR']
-version: 5.1.1
-Action.layers attribute: True
-```
-
-If you see a different version with `disabled BSDF inputs: []` and the `BLENDER_EEVEE_NEXT` succeeds (resolving to that exact name), you're on Blender 4.2-4.4.
+The probe prints the same fields it returns. On the tested 5.2.2 build, `eevee_engine` is `BLENDER_EEVEE`, `layered_actions` is true and `has_mesh_auto_smooth` is false. Read `version_string` for the running version.
 
 If you find recipes that fail on your version, please file an issue at https://github.com/RobLe3/cc-blender-skill/issues with:
 - `bpy.app.version_string`

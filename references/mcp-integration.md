@@ -2,30 +2,41 @@
 
 The Blender MCP transport, install, client wiring, safe mode, telemetry, and connection troubleshooting live in the separate **`blender-mcp`** skill. Use that skill when the problem is the connection or the MCP surface.
 
-The PyPI package was renamed from `blender-mcp` to **`mcp-for-blender`** (existing configs still work). Repo: `ahujasid/mcp-for-blender`.
+The community project publishes **`mcp-for-blender`**. Both community and Blender Lab installations may appear under a client alias such as `blender`. Identify them from the advertised tools. [Community repository](https://github.com/ahujasid/mcp-for-blender)
 
 ---
 
-## Capability discovery
+## Choose the connection for this task
 
-Inspect the live tool inventory and schemas before executing. Tool namespaces, argument names, optional asset services, limits and protocol versions vary by server build. Query the running Blender version with the available execution tool (for example `bpy.app.version_string`). Missing optional asset tools do not block manual modeling; do not install services, upload references or download assets beyond the user-authorized scope.
+Honor the user's selected backend. Otherwise prefer Blender Lab for shared operations when it is connected to the intended scene. Use the community backend for requested provider features it actually advertises. Check the live tool list and make a read-only query for the scene, blend filepath and Blender version before editing. Keep subsequent calls on that instance. For a Finisher task, use the NIUA manual and its health check.
 
-The tables below are integration examples from a particular server implementation, not a live compatibility contract. Verify version-specific details against the connected server or its matching documentation. Root-path substitution is defined in the entry `SKILL.md`.
+```python
+import bpy
+result = {"scene": bpy.context.scene.name, "blend": bpy.data.filepath, "version": bpy.app.version_string}
+print(result)
+```
 
-## Core tool examples
+| Operation | Blender Lab | Community `mcp-for-blender` 2.3.1 | Older community servers, when advertised |
+|-----------|-------------|------------------------------------|------------------------------------------|
+| Inspect scene | `get_objects_summary()` | `get_scene_info(fields=["settings"])` | `get_scene_info()` |
+| Inspect object | `get_object_detail_summary(name=...)` | `get_scene_info(query=..., fields=["size", "details", "modifiers"])` | `get_object_info(object_name=...)` |
+| Run Blender Python | `execute_blender_code(code=...)` | `execute_blender_code(code=...)` | `execute_blender_code(code=...)` |
+| Inspect an image | `get_screenshot_of_area_as_image(area_ui_type="VIEW_3D")` for a GUI area | `look(mode="camera")` for a quick render, `look(image="Render Result")` for the last render | `get_viewport_screenshot` |
+| Find/import provider assets | Inspect configured capabilities | `get_addon_status()`, then `search_assets(source=...)` and `import_asset(source=..., id=...)` | Provider-specific calls below |
 
-| Tool | Purpose | Key parameters |
-|------|---------|----------------|
-| `mcp__blender__execute_blender_code` | Run Python code inside Blender | `code` (string) |
-| `mcp__blender__get_scene_info` | Scene overview: objects, materials, lights, cameras | — |
-| `mcp__blender__get_object_info` | Detailed info for one object | `object_name` (string) |
-| `mcp__blender__get_viewport_screenshot` | Capture the current 3D viewport | — |
+Community `query` matches a substring. Verify the exact returned name before acting. Use `fields` and `limit` to bound large-scene reads. Check provider availability and the requested asset scope before importing. The community 2.3.1 default `look` shading produces a low-sample render. If it falls back to the plain viewport, the response includes a note. [Community tool definitions](https://github.com/ahujasid/mcp-for-blender/blob/a5a8acf2c6/src/blender_mcp/server.py)
 
-Execution rules for generated Python: `${COMMANDCODE_SKILL_DIR}/references/code-execution-rules.md`.
+For portable Python, assign a JSON-safe dict to `result` and also print it. On Lab, inspect the outer `status` and any status in `result`. The Lab render tool `render_viewport_to_path(output_path=...)` uses the requested basename in Blender's scratch directory. Inspect the returned `result.filepath`. For an exact destination, render through Python with the agreed filepath. [Blender Lab tool source](https://projects.blender.org/lab/blender_mcp/src/commit/dbbf836ad4b1025f14a2b3b504c43903f39e0b04/mcp/blmcp/tools)
+
+On a community timeout, Blender may still be executing on its main thread. Wait, query the same instance and inspect the named objects or output. Resume only the part still missing. A refused connection requires a transport check on the selected endpoint. [Community timeout handling](https://github.com/ahujasid/mcp-for-blender/commit/b36cf67169)
+
+Execution rules for generated Python are in `${COMMANDCODE_SKILL_DIR}/references/code-execution-rules.md`.
 
 ---
 
-## Asset download tools
+## Legacy community asset tools
+
+These examples and the provider-specific generation tools below describe older installations. In 2.3.1 use the consolidated tools above, or `generate_3d(provider=...)` for an explicitly requested generator.
 
 ### Poly Haven — HDRIs, textures, and models
 
@@ -121,7 +132,7 @@ Another AI model generation option.
 
 ---
 
-## Recorded connection limits (verify against the running server)
+## Historical community connection limits (verify against the running server)
 
 | Parameter | Value | Source |
 |-----------|-------|--------|

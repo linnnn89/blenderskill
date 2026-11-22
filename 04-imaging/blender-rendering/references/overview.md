@@ -93,26 +93,13 @@ scene.cycles.transparent_max_bounces = 8
 ```python
 import bpy
 
-scene = bpy.context.scene
-scene.render.engine = 'BLENDER_EEVEE_NEXT'   # Blender 4.2+; older: 'BLENDER_EEVEE'
-
-# Sample count (way fewer than Cycles)
-scene.eevee.taa_render_samples = 64    # final render
-scene.eevee.taa_samples = 16            # viewport
-
-# Critical features
-scene.eevee.use_gtao = True             # screen-space AO (cheap, looks good)
-scene.eevee.gtao_distance = 0.2         # AO distance
-scene.eevee.use_bloom = True            # glow effects
-scene.eevee.use_ssr = True              # screen-space reflections
-scene.eevee.use_ssr_refraction = True   # screen-space refraction (glass)
-scene.eevee.use_volumetric_lights = True
-scene.eevee.use_motion_blur = True      # if needed
-
-# Shadows
-scene.eevee.shadow_cube_size = '1024'   # cube shadow map resolution
-scene.eevee.shadow_cascade_size = '2048' # for sun shadows
+import runpy
+compat = runpy.run_path(r"${COMMANDCODE_SKILL_DIR}/scripts/blender_compat.py")
+result = compat['configure_eevee'](bpy.context.scene)
+print(result)
 ```
+
+Recipe 3 in the rendering manual describes the preset. Configure motion blur, shadow budgets and compositor glow separately for the intended shot using the installed API.
 
 **EEVEE limitations to know**:
 - **Reflections** are screen-space — can't reflect what's off-screen.

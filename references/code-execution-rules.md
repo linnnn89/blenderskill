@@ -104,8 +104,8 @@ Blender 5.x changed several APIs that appear in older recipes. Consult `${COMMAN
 
 | Symptom | Cause | Where the fix lives |
 |---------|-------|--------------------|
-| `BLENDER_EEVEE_NEXT` rejected | 5.x renamed the engine back to `BLENDER_EEVEE` | `blender-rendering` Recipe 3 (try/except fallback) |
-| `'Action' object has no attribute 'fcurves'` | 5.x layered Actions | `blender-animation` Recipe 3 (`get_fcurves_compat()`) |
+| `BLENDER_EEVEE_NEXT` rejected | The engine identifier varies by release | `blender-rendering` Recipe 3 reads the installed RNA |
+| `'Action' object has no attribute 'fcurves'` | Layered Actions store curves per slot | `blender-animation` Recipe 3 (`action_fcurves(owner)`) |
 | `KeyError: 'Subsurface IOR'` / `'Weight'` | 5.x marks some BSDF inputs `enabled=False`, blocking string-key lookup | `blender-materials` Recipe 9 (`set_input` helper — iterate inputs, match by name) |
 | `Mesh.use_auto_smooth` missing | Removed in 5.x | Wrap in `hasattr(mesh, 'use_auto_smooth')`, or just use `bpy.ops.object.shade_smooth()` |
 | `Error: Cannot render, no camera` | `scene.camera is None` | Run the `ensure_camera()` guard before any render — `blender-rendering` Recipes 5 / 6 |

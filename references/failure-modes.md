@@ -8,15 +8,15 @@ The orchestrator's job when something goes wrong is to classify the symptom fast
 
 | Problem | Action |
 |---------|--------|
-| MCP timeout | Break the failing chunk into smaller pieces |
-| `Code execution error: <line>` | Read the error; fix that one line; retry |
+| MCP timeout | Wait for Blender, then inspect the same scene or output. Split and resume only the unfinished work. |
+| `Code execution error: <line>` | Check which preceding edits completed before correcting the failed operation. |
 | Object not found in next call | You used a Python variable instead of `bpy.data.objects['name']` |
 | Render took too long | Reduce samples, enable adaptive sampling, lower resolution |
-| File not at expected path | Use absolute paths; verify with Bash `ls` |
-| `ConnectionRefusedError` / "Could not connect to Blender" | Blender is not running or BlenderMCP addon is not started. Tell user: **Edit → Preferences → Add-ons → enable 'Interface: MCP for Blender'**, press **N** in 3D Viewport → **MCP for Blender** tab → click **Start MCP Server** (port 9876 default). |
+| File not at expected path | Inspect the filepath returned by the selected backend on the Blender host. Lab's render tool places the requested basename in its scratch directory. |
+| `ConnectionRefusedError` / "Could not connect to Blender" | Check that the selected backend's Blender instance and matching add-on are listening on its configured endpoint. Use the separate `blender-mcp` skill for setup. |
 | Poly Pizza 403 / Cloudflare HTML challenge | Cloudflare blocks datacenter/VPN IPs. Retry on residential network or download `.glb` manually from `https://poly.pizza` and import via `File > Import > glTF 2.0`. |
 | Poly Haven `.blend` open error | Asset was created in a newer Blender version. Switch download format parameter or fallback to glTF. |
-| Large scene snapshot truncated / JSON error | Exceeded `MAX_SNAPSHOT_OBJECTS` (4000) or `MAX_SNAPSHOT_SELECTED` (1000). Inspect scene per collection instead of selecting all. |
+| Large scene response truncated | Request one collection or named object. Community 2.3.1 supports `root`, `query`, `fields` and `limit`. |
 
 ---
 
@@ -26,8 +26,8 @@ Full matrix and smoke test: `${COMMANDCODE_SKILL_DIR}/references/blender-version
 
 | Problem | Action |
 |---------|--------|
-| `'Action' object has no attribute 'fcurves'` | Blender 5.x layered Actions; walk `action.layers[].strips[].channelbags[].fcurves` instead. See `blender-animation` Recipe 3 for the compat helper. |
-| `BLENDER_EEVEE_NEXT` rejected | Blender 5.x renamed it back to `BLENDER_EEVEE`. See `blender-rendering` Recipe 3 for the try/except fallback. |
+| `'Action' object has no attribute 'fcurves'` | Read the object's assigned slot with `action_fcurves(owner)` in `blender-animation` Recipe 3. |
+| `BLENDER_EEVEE_NEXT` rejected | `blender-rendering` Recipe 3 selects the built-in EEVEE identifier from the installed RNA. |
 | `KeyError: 'Subsurface IOR'` (or other input names) | Blender 5.x marks some BSDF inputs `enabled=False` (currently `Weight`, `Subsurface IOR`); they're reachable by iteration but not string-key lookup. See `blender-materials` Recipe 9 for the `set_input` helper. |
 | `Error: Cannot render, no camera` | `scene.camera is None`. Always run the `ensure_camera()` guard before any render — see `blender-rendering` Recipes 5 / 6. The orchestrator must check this before chaining to render even if the user's prompt didn't ask for a camera explicitly. |
 
