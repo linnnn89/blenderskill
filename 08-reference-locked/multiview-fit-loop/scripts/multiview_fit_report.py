@@ -97,8 +97,8 @@ def main():
         if not (t and r): continue
         rep=compare(t,r,Path(args.overlay_dir)/f'{v}_fit_overlay.png')
         report['views'][v]=rep
-        if 'pass_bbox_center_1p5pct' in rep: all_center.append(rep['pass_bbox_center_1p5pct'])
-        if 'pass_bbox_size_5pct' in rep: all_size.append(rep['pass_bbox_size_5pct'])
+        all_center.append(rep.get('pass_bbox_center_1p5pct', False))
+        all_size.append(rep.get('pass_bbox_size_5pct', False))
     report['summary']['all_bbox_centers_pass']=bool(all_center) and all(all_center)
     report['summary']['all_bbox_sizes_pass_5pct']=bool(all_size) and all(all_size)
     report['summary']['all_views_pass_first_pass']=report['summary']['all_bbox_centers_pass'] and report['summary']['all_bbox_sizes_pass_5pct']
